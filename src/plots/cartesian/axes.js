@@ -708,19 +708,16 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
     generateTicks();
 
-    var addedPreTick0Label = false;
-    if(isPeriod && tickVals[0]) {
-        // add one label to show pre tick0 period
-        tickVals.unshift({
-            minor: false,
-            value: axes.tickIncrement(tickVals[0].value, ax.dtick, !axrev, ax.calendar)
-        });
-        addedPreTick0Label = true;
-    }
-
     var i;
-    var removedPreTick0Label = false;
-    if(isPeriod && addedPreTick0Label) {
+    if(isPeriod) {
+        if(tickVals[0]) {
+            // add one label to show pre tick0 period
+            tickVals.unshift({
+                minor: false,
+                value: axes.tickIncrement(tickVals[0].value, ax.dtick, !axrev, ax.calendar)
+            });
+        }
+
         for(i = 0; i < tickVals.length; i++) {
             var v = tickVals[i].value;
 
@@ -774,10 +771,6 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
             // ensure new label positions remain between ticks
             v += Math.min(periodLength, actualDelta) / 2;
-
-            if(periodLength && ax.rangebreaks) {
-                v = moveOutsideBreak(v, ax, true);
-            }
 
             tickVals[i].periodX = v;
         }
@@ -845,11 +838,10 @@ axes.calcTicks = function calcTicks(ax, opts) {
     ax._inCalcTicks = true;
 
     var ticksOut = [];
-    var t;
+    var t, p;
     for(i = 0; i < tickVals.length; i++) {
         var _minor = tickVals[i].minor;
         var _value = tickVals[i].value;
-        var p = tickVals[i].periodX;
 
         t = axes.tickText(
             ax,
@@ -858,29 +850,16 @@ axes.calcTicks = function calcTicks(ax, opts) {
             _minor // noSuffixPrefix
         );
 
+        p = tickVals[i].periodX;
         if(p !== undefined) {
             t.periodX = p;
             if(p > maxRange || p < minRange) { // hide label if outside the range
                 t.text = ' '; // don't use an empty string here which can confuse automargin (issue 5132)
-                removedPreTick0Label = true;
+                ax._prevDateHead = '';
             }
         }
 
         ticksOut.push(t);
-    }
-
-    if(removedPreTick0Label) {
-        for(i = 0; i < ticksOut.length; i++) {
-            if(ticksOut[i].periodX <= maxRange && ticksOut[i].periodX >= minRange) {
-                // redo first visible tick
-                ax._prevDateHead = '';
-                ticksOut[i].text = axes.tickText(ax, ticksOut[i].x).text;
-
-                if(ticksOut[i].periodX < minRange) ticksOut[i].periodX = minRange;
-                if(ticksOut[i].periodX > maxRange) ticksOut[i].periodX = maxRange;
-                break;
-            }
-        }
     }
 
     if(isPeriod && resetDtick) {
@@ -892,7 +871,13 @@ axes.calcTicks = function calcTicks(ax, opts) {
             if(prevText === t.text) {
                 endX = t.periodX;
                 ticksOut[i].x = t.x;
-                ticksOut[i].periodX = (startX + endX) / 2;
+                p = (startX + endX) / 2;
+                if(ax.rangebreaks && ax.maskBreaks(p) === BADNUM) {
+                    var p0 = moveOutsideBreak(p, ax, true);
+                    var p1 = moveOutsideBreak(p, ax, false);
+                    p = Math.abs(p - p0) < Math.abs(p - p1) ? p0 : p1;
+                }
+                ticksOut[i].periodX = p;
                 ticksOut.splice(i + 1, 1); // remove previous item
             } else {
                 startX = t.periodX;
