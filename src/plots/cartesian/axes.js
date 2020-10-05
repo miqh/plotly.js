@@ -697,6 +697,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
             if(ax.rangebreaks) {
                 if(ax.maskBreaks(x) === BADNUM) {
                     x = moveOutsideBreak(x, ax, axrev);
+                    if(x === maxRange) continue;
                 }
                 var p = ax.c2p(x);
                 if(p === prevP) continue;
