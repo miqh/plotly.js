@@ -796,7 +796,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
             var tf = 0;
             if(ax.tickmode === 'auto') {
                 tf =
-                    (ax._id.charAt(0) === 'y' ? 2 : 6) *
+                    (ax._id.charAt(0) === 'y' ? 2 : 5) *
                     (ax.tickfont ? ax.tickfont.size : 12);
             }
 
