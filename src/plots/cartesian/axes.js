@@ -718,6 +718,71 @@ axes.calcTicks = function calcTicks(ax, opts) {
         addedPreTick0Label = true;
     }
 
+    var i;
+    var removedPreTick0Label = false;
+    if(isPeriod && addedPreTick0Label) {
+        for(i = 0; i < tickVals.length; i++) {
+            var v = tickVals[i].value;
+
+            var a = i;
+            var b = i + 1;
+            if(i < tickVals.length - 1) {
+                a = i;
+                b = i + 1;
+            } else if(i > 0) {
+                a = i - 1;
+                b = i;
+            } else {
+                a = i;
+                b = i;
+            }
+
+            var A = tickVals[a].value;
+            var B = tickVals[b].value;
+            var actualDelta = Math.abs(B - A);
+            var delta = definedDelta || actualDelta;
+            var periodLength = 0;
+
+            if(delta >= ONEMINYEAR) {
+                if(actualDelta >= ONEMINYEAR && actualDelta <= ONEMAXYEAR) {
+                    periodLength = actualDelta;
+                } else {
+                    periodLength = ONEAVGYEAR;
+                }
+            } else if(definedDelta === ONEAVGQUARTER && delta >= ONEMINQUARTER) {
+                if(actualDelta >= ONEMINQUARTER && actualDelta <= ONEMAXQUARTER) {
+                    periodLength = actualDelta;
+                } else {
+                    periodLength = ONEAVGQUARTER;
+                }
+            } else if(delta >= ONEMINMONTH) {
+                if(actualDelta >= ONEMINMONTH && actualDelta <= ONEMAXMONTH) {
+                    periodLength = actualDelta;
+                } else {
+                    periodLength = ONEAVGMONTH;
+                }
+            } else if(definedDelta === ONEWEEK && delta >= ONEWEEK) {
+                periodLength = ONEWEEK;
+                if(ax._hasDayOfWeekBreaks) periodLength -= 2 * ONEDAY; // hack to center labels | TODO: improve this based on the actual number of days
+            } else if(delta >= ONEDAY) {
+                periodLength = ONEDAY;
+            } else if(definedDelta === HALFDAY && delta >= HALFDAY) {
+                periodLength = HALFDAY;
+            } else if(definedDelta === ONEHOUR && delta >= ONEHOUR) {
+                periodLength = ONEHOUR;
+            }
+
+            // ensure new label positions remain between ticks
+            v += Math.min(periodLength, actualDelta) / 2;
+
+            if(periodLength && ax.rangebreaks) {
+                v = moveOutsideBreak(v, ax, true);
+            }
+
+            tickVals[i].periodX = v;
+        }
+    }
+
     if(ax.rangebreaks) {
         // replace ticks inside breaks that would get a tick
         // and reduce ticks
@@ -780,10 +845,11 @@ axes.calcTicks = function calcTicks(ax, opts) {
     ax._inCalcTicks = true;
 
     var ticksOut = [];
-    var i, t;
+    var t;
     for(i = 0; i < tickVals.length; i++) {
         var _minor = tickVals[i].minor;
         var _value = tickVals[i].value;
+        var p = tickVals[i].periodX;
 
         t = axes.tickText(
             ax,
@@ -792,86 +858,27 @@ axes.calcTicks = function calcTicks(ax, opts) {
             _minor // noSuffixPrefix
         );
 
-        ticksOut.push(t);
-    }
-
-    if(isPeriod && addedPreTick0Label) {
-        var removedPreTick0Label = false;
-
-        for(i = 0; i < ticksOut.length; i++) {
-            var v = ticksOut[i].x;
-
-            var a = i;
-            var b = i + 1;
-            if(i < ticksOut.length - 1) {
-                a = i;
-                b = i + 1;
-            } else if(i > 0) {
-                a = i - 1;
-                b = i;
-            } else {
-                a = i;
-                b = i;
-            }
-
-            var A = ticksOut[a].x;
-            var B = ticksOut[b].x;
-            var actualDelta = Math.abs(B - A);
-            var delta = definedDelta || actualDelta;
-            var periodLength = 0;
-
-            if(delta >= ONEMINYEAR) {
-                if(actualDelta >= ONEMINYEAR && actualDelta <= ONEMAXYEAR) {
-                    periodLength = actualDelta;
-                } else {
-                    periodLength = ONEAVGYEAR;
-                }
-            } else if(definedDelta === ONEAVGQUARTER && delta >= ONEMINQUARTER) {
-                if(actualDelta >= ONEMINQUARTER && actualDelta <= ONEMAXQUARTER) {
-                    periodLength = actualDelta;
-                } else {
-                    periodLength = ONEAVGQUARTER;
-                }
-            } else if(delta >= ONEMINMONTH) {
-                if(actualDelta >= ONEMINMONTH && actualDelta <= ONEMAXMONTH) {
-                    periodLength = actualDelta;
-                } else {
-                    periodLength = ONEAVGMONTH;
-                }
-            } else if(definedDelta === ONEWEEK && delta >= ONEWEEK) {
-                periodLength = ONEWEEK;
-                if(ax._hasDayOfWeekBreaks) periodLength -= 2 * ONEDAY; // hack to center labels | TODO: improve this based on the actual number of days
-            } else if(delta >= ONEDAY) {
-                periodLength = ONEDAY;
-            } else if(definedDelta === HALFDAY && delta >= HALFDAY) {
-                periodLength = HALFDAY;
-            } else if(definedDelta === ONEHOUR && delta >= ONEHOUR) {
-                periodLength = ONEHOUR;
-            }
-
-            // ensure new label positions remain between ticks
-            v += Math.min(periodLength, actualDelta) / 2;
-
-            if(periodLength && ax.rangebreaks) {
-                v = moveOutsideBreak(v, ax, true);
-            }
-
-            ticksOut[i].periodX = v;
-
-            if(v > maxRange || v < minRange) { // hide label if outside the range
-                ticksOut[i].text = ' '; // don't use an empty string here which can confuse automargin (issue 5132)
+        if(p !== undefined) {
+            t.periodX = p;
+            if(p > maxRange || p < minRange) { // hide label if outside the range
+                t.text = ' '; // don't use an empty string here which can confuse automargin (issue 5132)
                 removedPreTick0Label = true;
             }
         }
 
-        if(removedPreTick0Label) {
-            for(i = 0; i < ticksOut.length; i++) {
-                if(ticksOut[i].periodX <= maxRange && ticksOut[i].periodX >= minRange) {
-                    // redo first visible tick
-                    ax._prevDateHead = '';
-                    ticksOut[i].text = axes.tickText(ax, ticksOut[i].x).text;
-                    break;
-                }
+        ticksOut.push(t);
+    }
+
+    if(removedPreTick0Label) {
+        for(i = 0; i < ticksOut.length; i++) {
+            if(ticksOut[i].periodX <= maxRange && ticksOut[i].periodX >= minRange) {
+                // redo first visible tick
+                ax._prevDateHead = '';
+                ticksOut[i].text = axes.tickText(ax, ticksOut[i].x).text;
+
+                if(ticksOut[i].periodX < minRange) ticksOut[i].periodX = minRange;
+                if(ticksOut[i].periodX > maxRange) ticksOut[i].periodX = maxRange;
+                break;
             }
         }
     }
