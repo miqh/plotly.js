@@ -692,6 +692,10 @@ axes.calcTicks = function calcTicks(ax, opts) {
             // prevent infinite loops - no more than one tick per pixel,
             // and make sure each value is different from the previous
             if(tickVals.length > maxTicks || x === xPrevious) break;
+
+            if(ax.rangebreaks && ax.maskBreaks(x) === BADNUM) {
+                x = moveOutsideBreak(x, ax, axrev);
+            }
             xPrevious = x;
 
             var minor = false;
