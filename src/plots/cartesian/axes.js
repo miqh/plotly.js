@@ -580,9 +580,6 @@ axes.calcTicks = function calcTicks(ax, opts) {
     // in case we're missing some ticktext, we can break out for array ticks
     if(ax.tickmode === 'array') return arrayTicks(ax);
 
-    // find the first tick
-    ax._tmin = axes.tickFirst(ax, opts);
-
     // add a tiny bit so we get ticks which may have rounded out
     var exRng = expandRange(rng);
     var startTick = exRng[0];
@@ -591,8 +588,15 @@ axes.calcTicks = function calcTicks(ax, opts) {
     var axrev = (rng[1] < rng[0]);
     var minRange = Math.min(rng[0], rng[1]);
     var maxRange = Math.max(rng[0], rng[1]);
-    var tickformat = axes.getTickFormat(ax);
-    var isPeriod = ax.ticklabelmode === 'period';
+
+    // find the first tick
+    var x0 = axes.tickFirst(ax, opts);
+    if(ax.rangebreaks) {
+        if(ax.maskBreaks(x0) === BADNUM) {
+            x0 = moveOutsideBreak(x0, ax, axrev);
+        }
+    }
+    ax._tmin = x0;
 
     // No visible ticks? Quit.
     // I've only seen this on category axes with all categories off the edge.
@@ -606,6 +610,8 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
     var isDLog = (ax.type === 'log') && !(isNumeric(ax.dtick) || ax.dtick.charAt(0) === 'L');
 
+    var tickformat = axes.getTickFormat(ax);
+    var isPeriod = ax.ticklabelmode === 'period';
     var definedDelta;
     var resetDtick;
     if(isPeriod && tickformat) {
@@ -688,14 +694,13 @@ axes.calcTicks = function calcTicks(ax, opts) {
         tickVals = [];
         for(var x = ax._tmin;
                 (axrev) ? (x >= endTick) : (x <= endTick);
-                x = axes.tickIncrement(x, ax.dtick, axrev, ax.calendar)) {
+                x = axes.tickIncrement(x, ax.dtick, axrev, ax.calendar)
+        ) {
+            if(ax.rangebreaks && ax.maskBreaks(x) === BADNUM) continue;
+
             // prevent infinite loops - no more than one tick per pixel,
             // and make sure each value is different from the previous
             if(tickVals.length > maxTicks || x === xPrevious) break;
-
-            if(ax.rangebreaks && ax.maskBreaks(x) === BADNUM) {
-                x = moveOutsideBreak(x, ax, axrev);
-            }
             xPrevious = x;
 
             var minor = false;
