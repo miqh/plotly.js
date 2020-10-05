@@ -713,7 +713,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
         // add one label to show pre tick0 period
         tickVals.unshift({
             minor: false,
-            value: axes.tickIncrement(tickVals[0].value, ax.dtick, !axrev, ax.caldendar)
+            value: axes.tickIncrement(tickVals[0].value, ax.dtick, !axrev, ax.calendar)
         });
         addedPreTick0Label = true;
     }
