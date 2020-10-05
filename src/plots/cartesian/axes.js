@@ -558,9 +558,8 @@ axes.prepTicks = function(ax, opts) {
     // check for missing tick0
     if(!ax.tick0) {
         ax.tick0 = 0;
-        if(ax.type === 'date') ax.tick0 = '2000-01-01';
-        if(ax.rangebreaks && ax.maskBreaks(ax.tick0) === BADNUM) {
-            ax.tick0 = moveOutsideBreak(ax.tick0, ax);
+        if(ax.type === 'date') {
+            ax.tick0 = '2000-01-01';
         }
     }
 
@@ -927,9 +926,6 @@ axes.autoTicks = function(ax, roughDTick) {
 
     if(ax.type === 'date') {
         ax.tick0 = Lib.dateTick0(ax.calendar, 0);
-        if(ax.rangebreaks && ax.maskBreaks(ax.tick0) === BADNUM) {
-            ax.tick0 = moveOutsideBreak(ax.tick0, ax);
-        }
 
         // the criteria below are all based on the rough spacing we calculate
         // being > half of the final unit - so precalculate twice the rough val
