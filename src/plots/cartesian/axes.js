@@ -799,12 +799,9 @@ axes.calcTicks = function calcTicks(ax, opts) {
             for(var q = first; dir * q <= dir * last; q += dir) {
                 var tickVal = tickVals[q];
                 if(ax.maskBreaks(tickVal.value) === BADNUM) {
-                    tickVal.value = moveOutsideBreak(tickVal.value, ax);
-
-                    if(ax._rl && (
-                        ax._rl[0] === tickVal.value ||
-                        ax._rl[1] === tickVal.value
-                    )) continue;
+                    var v2 = moveOutsideBreak(tickVal.value, ax);
+                    if(v2 === minRange || v2 === maxRange) continue;
+                    tickVal.value = v2;
                 }
 
                 var pos = ax.c2p(tickVal.value);
