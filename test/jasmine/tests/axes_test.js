@@ -5473,7 +5473,7 @@ describe('Test axes', function() {
         });
 
         ['%U', '%V', '%W'].forEach(function(formatter, i) {
-            it('should move weekly labels by one day (i.e. to help center the labels) when *day of week* rangebreak is present', function(done) {
+            it('should position weekly labels in the middle when *day of week* rangebreak is present', function(done) {
                 Plotly.newPlot(gd, {
                     data: [{
                         hovertemplate: hovertemplate,
@@ -5522,11 +5522,11 @@ describe('Test axes', function() {
                 })
                 .then(function() {
                     _assert('', [
-                        ['2019-12-31 12:00', '2020-01-08 12:00', '2020-01-15 12:00', '2020-01-22 12:00', '2020-01-29 12:00'],
+                        ['2020-01-01 12:00', '2020-01-08 12:00', '2020-01-15 12:00', '2020-01-22 12:00', '2020-01-29 12:00'],
                         ['2020-01-01 12:00', '2020-01-08 12:00', '2020-01-15 12:00', '2020-01-22 12:00', '2020-01-29 12:00'],
                         ['2020-01-01 12:00', '2020-01-08 12:00', '2020-01-15 12:00', '2020-01-22 12:00', '2020-01-29 12:00']
                     ][i], [
-                        [' ', 'Jan-W01', 'Jan-W02', 'Jan-W03', 'Jan-W04'],
+                        ['Dec-W52', 'Jan-W01', 'Jan-W02', 'Jan-W03', 'Jan-W04'],
                         ['Dec-W01', 'Jan-W02', 'Jan-W03', 'Jan-W04', 'Jan-W05'],
                         ['Dec-W52', 'Jan-W01', 'Jan-W02', 'Jan-W03', 'Jan-W04']
                     ][i]);

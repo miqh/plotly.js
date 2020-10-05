@@ -760,7 +760,9 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 }
             } else if(definedDelta === ONEWEEK && delta >= ONEWEEK) {
                 periodLength = ONEWEEK;
-                if(ax._hasDayOfWeekBreaks) periodLength -= 2 * ONEDAY; // hack to center labels | TODO: improve this based on the actual number of days
+                if(ax._hasDayOfWeekBreaks && /%[VW]/.test(tickformat)) { // center labels
+                    periodLength -= 2 * ONEDAY;
+                }
             } else if(delta >= ONEDAY) {
                 periodLength = ONEDAY;
             } else if(definedDelta === HALFDAY && delta >= HALFDAY) {
