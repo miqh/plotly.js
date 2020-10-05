@@ -545,7 +545,7 @@ axes.prepTicks = function(ax, opts) {
         if(ax.tickmode === 'array') nt *= 100;
 
 
-        ax._roughDTick = (Math.abs(rng[1] - rng[0]) - (ax._lBreaks || 0)) / nt;
+        ax._roughDTick = Math.abs(rng[1] - rng[0]) / nt;
         axes.autoTicks(ax, ax._roughDTick);
 
         // check for a forced minimum dtick
@@ -557,7 +557,11 @@ axes.prepTicks = function(ax, opts) {
 
     // check for missing tick0
     if(!ax.tick0) {
-        ax.tick0 = (ax.type === 'date') ? '2000-01-01' : 0;
+        ax.tick0 = 0;
+        if(ax.type === 'date') ax.tick0 = '2000-01-01';
+        if(ax.rangebreaks && ax.maskBreaks(ax.tick0) === BADNUM) {
+            ax.tick0 = moveOutsideBreak(ax.tick0, ax);
+        }
     }
 
     // ensure we don't try to make ticks below our minimum precision
@@ -591,10 +595,8 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
     // find the first tick
     var x0 = axes.tickFirst(ax, opts);
-    if(ax.rangebreaks) {
-        if(ax.maskBreaks(x0) === BADNUM) {
-            x0 = moveOutsideBreak(x0, ax, axrev);
-        }
+    if(ax.rangebreaks && ax.maskBreaks(x0) === BADNUM) {
+        x0 = moveOutsideBreak(x0, ax, axrev);
     }
     ax._tmin = x0;
 
@@ -689,20 +691,26 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
     var tickVals;
     function generateTicks() {
-        var xPrevious = null;
+        var prevX = null;
+        var prevP = null;
         var maxTicks = Math.max(1000, ax._length || 0);
         tickVals = [];
         for(var x = ax._tmin;
                 (axrev) ? (x >= endTick) : (x <= endTick);
                 x = axes.tickIncrement(x, ax.dtick, axrev, ax.calendar)
         ) {
-            if(ax.rangebreaks && ax.maskBreaks(x) === BADNUM) {
-                x = moveOutsideBreak(x, ax, axrev);
+            if(ax.rangebreaks) {
+                if(ax.maskBreaks(x) === BADNUM) {
+                    x = moveOutsideBreak(x, ax, axrev);
+                }
+                var p = ax.c2p(x);
+                if(p === prevP) continue;
+                prevP = p;
             }
             // prevent infinite loops - no more than one tick per pixel,
             // and make sure each value is different from the previous
-            if(tickVals.length > maxTicks || x === xPrevious) break;
-            xPrevious = x;
+            if(tickVals.length > maxTicks || x === prevX) break;
+            prevX = x;
 
             var minor = false;
             if(isDLog && (x !== (x | 0))) {
@@ -785,47 +793,6 @@ axes.calcTicks = function calcTicks(ax, opts) {
             v += Math.min(periodLength, actualDelta) / 2;
 
             tickVals[i].periodX = v;
-        }
-    }
-
-    if(ax.rangebreaks) {
-        // replace ticks inside breaks that would get a tick
-        // and reduce ticks
-        var len = tickVals.length;
-        if(len) {
-            var tf = 0;
-            if(ax.tickmode === 'auto') {
-                tf =
-                    (ax._id.charAt(0) === 'y' ? 2 : 5) *
-                    (ax.tickfont ? ax.tickfont.size : 12);
-            }
-
-            var newTickVals = [];
-            var prevPos;
-
-            var dir = axrev ? 1 : -1;
-            var first = axrev ? 0 : len - 1;
-            var last = axrev ? len - 1 : 0;
-            for(var q = first; dir * q <= dir * last; q += dir) {
-                var tickVal = tickVals[q];
-                if(ax.maskBreaks(tickVal.value) === BADNUM) {
-                    var v2 = moveOutsideBreak(tickVal.value, ax);
-                    if(v2 === minRange || v2 === maxRange) continue;
-                    tickVal.value = v2;
-                }
-
-                var pos = ax.c2p(tickVal.value);
-
-                if(pos === prevPos) {
-                    if(newTickVals[newTickVals.length - 1].value < tickVal.value) {
-                        newTickVals[newTickVals.length - 1] = tickVal;
-                    }
-                } else if(prevPos === undefined || Math.abs(pos - prevPos) > tf) {
-                    prevPos = pos;
-                    newTickVals.push(tickVal);
-                }
-            }
-            tickVals = newTickVals.reverse();
         }
     }
 
@@ -988,6 +955,10 @@ axes.autoTicks = function(ax, roughDTick) {
 
     if(ax.type === 'date') {
         ax.tick0 = Lib.dateTick0(ax.calendar, 0);
+        if(ax.rangebreaks && ax.maskBreaks(ax.tick0) === BADNUM) {
+            ax.tick0 = moveOutsideBreak(ax.tick0, ax);
+        }
+
         // the criteria below are all based on the rough spacing we calculate
         // being > half of the final unit - so precalculate twice the rough val
         var roughX2 = 2 * roughDTick;
