@@ -615,12 +615,10 @@ axes.calcTicks = function calcTicks(ax, opts) {
     var tickformat = axes.getTickFormat(ax);
     var isPeriod = ax.ticklabelmode === 'period';
     var definedDelta;
-    var resetDtick;
     if(isPeriod && tickformat) {
         var noDtick = !!ax._dtickInit;
-        resetDtick = true;
         if(
-            /%[fLQsSMX]/.test(tickformat)
+            !(/%[fLQsSMX]/.test(tickformat))
             // %f: microseconds as a decimal number [000000, 999999]
             // %L: milliseconds as a decimal number [000, 999]
             // %Q: milliseconds since UNIX epoch
@@ -629,8 +627,6 @@ axes.calcTicks = function calcTicks(ax, opts) {
             // %M: minute as a decimal number [00,59]
             // %X: the locale’s time, such as %-I:%M:%S %p
         ) {
-            resetDtick = false;
-        } else {
             if(
                 /%[HI]/.test(tickformat)
                 // %H: hour (24-hour clock) as a decimal number [00,23]
@@ -836,30 +832,6 @@ axes.calcTicks = function calcTicks(ax, opts) {
         }
 
         ticksOut.push(t);
-    }
-
-    if(isPeriod && resetDtick) {
-        // join duplicate labels
-        var prevText;
-        var startX, endX;
-        for(i = ticksOut.length - 1; i > -1; i--) {
-            t = ticksOut[i];
-            if(prevText === t.text) {
-                endX = t.periodX;
-                ticksOut[i].x = t.x;
-                p = (startX + endX) / 2;
-                if(ax.rangebreaks && ax.maskBreaks(p) === BADNUM) {
-                    var p0 = moveOutsideBreak(p, ax, true);
-                    var p1 = moveOutsideBreak(p, ax, false);
-                    p = Math.abs(p - p0) < Math.abs(p - p1) ? p0 : p1;
-                }
-                ticksOut[i].periodX = p;
-                ticksOut.splice(i + 1, 1); // remove previous item
-            } else {
-                startX = t.periodX;
-                prevText = t.text;
-            }
-        }
     }
 
     ax._inCalcTicks = false;
