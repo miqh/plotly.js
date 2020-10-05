@@ -820,19 +820,19 @@ axes.calcTicks = function calcTicks(ax, opts) {
             var delta = definedDelta || actualDelta;
             var periodLength = 0;
 
-            if(delta >= ONEMINYEAR || ax.dtick === 'M12') {
+            if(delta >= ONEMINYEAR) {
                 if(actualDelta >= ONEMINYEAR && actualDelta <= ONEMAXYEAR) {
                     periodLength = actualDelta;
                 } else {
                     periodLength = ONEAVGYEAR;
                 }
-            } else if((definedDelta === ONEAVGQUARTER && delta >= ONEMINQUARTER) || ax.dtick === 'M3') {
+            } else if(definedDelta === ONEAVGQUARTER && delta >= ONEMINQUARTER) {
                 if(actualDelta >= ONEMINQUARTER && actualDelta <= ONEMAXQUARTER) {
                     periodLength = actualDelta;
                 } else {
                     periodLength = ONEAVGQUARTER;
                 }
-            } else if(delta >= ONEMINMONTH || ax.dtick === 'M1') {
+            } else if(delta >= ONEMINMONTH) {
                 if(actualDelta >= ONEMINMONTH && actualDelta <= ONEMAXMONTH) {
                     periodLength = actualDelta;
                 } else {
