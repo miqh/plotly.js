@@ -787,6 +787,13 @@ axes.calcTicks = function calcTicks(ax, opts) {
         var flip = ax._id.charAt(0) === 'y';
         var prevL = NaN;
         for(i = tickVals.length - 1; i > -1; i--) {
+            var x0 = tickVals[i].value;
+            var x1 = moveOutsideBreak(x0, ax);
+
+            tickVals[i].value = x1;
+            if(isPeriod) {
+                tickVals[i].periodX += x1 - x0;
+            }
             var l = ax.c2p(tickVals[i].value);
             if(flip ?
                 (prevL > l - 1) :
