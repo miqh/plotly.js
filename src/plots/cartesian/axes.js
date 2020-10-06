@@ -680,35 +680,32 @@ axes.calcTicks = function calcTicks(ax, opts) {
         }
     }
 
-    var tickVals;
-    function generateTicks() {
-        var xPrevious = null;
-        var maxTicks = Math.max(1000, ax._length || 0);
-        tickVals = [];
-        for(var x = ax._tmin;
-                (axrev) ? (x >= endTick) : (x <= endTick);
-                x = axes.tickIncrement(x, ax.dtick, axrev, ax.calendar)
-        ) {
-            if(ax.rangebreaks && moveOutsideBreak(x, ax) === maxRange) continue;
+    var tickVals = [];
 
-            // prevent infinite loops - no more than one tick per pixel,
-            // and make sure each value is different from the previous
-            if(tickVals.length > maxTicks || x === xPrevious) break;
-            xPrevious = x;
+    var xPrevious = null;
+    var maxTicks = Math.max(1000, ax._length || 0);
+    tickVals = [];
+    for(var x = ax._tmin;
+            (axrev) ? (x >= endTick) : (x <= endTick);
+            x = axes.tickIncrement(x, ax.dtick, axrev, ax.calendar)
+    ) {
+        if(ax.rangebreaks && moveOutsideBreak(x, ax) === maxRange) continue;
 
-            var minor = false;
-            if(isDLog && (x !== (x | 0))) {
-                minor = true;
-            }
+        // prevent infinite loops - no more than one tick per pixel,
+        // and make sure each value is different from the previous
+        if(tickVals.length > maxTicks || x === xPrevious) break;
+        xPrevious = x;
 
-            tickVals.push({
-                minor: minor,
-                value: x
-            });
+        var minor = false;
+        if(isDLog && (x !== (x | 0))) {
+            minor = true;
         }
-    }
 
-    generateTicks();
+        tickVals.push({
+            minor: minor,
+            value: x
+        });
+    }
 
     var i;
     if(isPeriod) {
@@ -790,8 +787,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
         var flip = ax._id.charAt(0) === 'y';
         var prevL = NaN;
         for(i = tickVals.length - 1; i > -1; i--) {
-            var x = tickVals[i].value;
-            var l = ax.c2p(x);
+            var l = ax.c2p(tickVals[i].value);
             if(flip ?
                 (prevL > l - 1) :
                 (prevL < l + 1)
