@@ -782,20 +782,19 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 periodLength = ONEHOUR;
             }
 
+            // ensure new label positions remain between ticks
+            periodLength = Math.min(periodLength, actualDelta) / 2;
+            var periodX = v + periodLength;
             if(periodLength && ax.rangebreaks) {
-                var v0 = v;
-                var v1 = v + periodLength;
-
                 var nAll = 24 * 7;
                 var n = 0;
                 for(var c = 0; c < nAll; c++) {
                     var r = (c + 0.5) / nAll;
-                    if(ax.maskBreaks(v0 * (1 - r) + v1 * r) !== BADNUM) n++;
+                    if(ax.maskBreaks(v * (1 - r) + r * periodX) !== BADNUM) n++;
                 }
                 periodLength *= n / nAll;
             }
-
-            tickVals[i].periodX = v + Math.min(periodLength, actualDelta) / 2;
+            tickVals[i].periodX = periodX;
         }
     }
 
