@@ -593,11 +593,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
     var maxRange = Math.max(rng[0], rng[1]);
 
     // find the first tick
-    var x0 = axes.tickFirst(ax, opts);
-    if(ax.rangebreaks && ax.maskBreaks(x0) === BADNUM) {
-        x0 = moveOutsideBreak(x0, ax, axrev);
-    }
-    ax._tmin = x0;
+    ax._tmin = axes.tickFirst(ax, opts);
 
     // No visible ticks? Quit.
     // I've only seen this on category axes with all categories off the edge.
@@ -686,35 +682,17 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
     var tickVals;
     function generateTicks() {
-        var prevX = null;
-        var prevP = NaN;
+        var xPrevious = null;
         var maxTicks = Math.max(1000, ax._length || 0);
         tickVals = [];
         for(var x = ax._tmin;
                 (axrev) ? (x >= endTick) : (x <= endTick);
                 x = axes.tickIncrement(x, ax.dtick, axrev, ax.calendar)
         ) {
-            var outX;
-            if(ax.rangebreaks) {
-                if(ax.maskBreaks(x) === BADNUM) {
-                    if(axrev) outX = moveOutsideBreak(x, ax, false);
-                    x = moveOutsideBreak(x, ax, axrev);
-                    if(!axrev && x === maxRange) continue;
-                }
-                var p = ax.c2p(x);
-                if(Math.abs(p - prevP) < 1) { // less than a pixel
-                    if(!axrev) {
-                        // replace previous value
-                        tickVals[tickVals.length - 1].value = x;
-                    }
-                    continue;
-                }
-                prevP = p;
-            }
             // prevent infinite loops - no more than one tick per pixel,
             // and make sure each value is different from the previous
-            if(tickVals.length > maxTicks || x === prevX) break;
-            prevX = x;
+            if(tickVals.length > maxTicks || x === xPrevious) break;
+            xPrevious = x;
 
             var minor = false;
             if(isDLog && (x !== (x | 0))) {
@@ -723,8 +701,16 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
             tickVals.push({
                 minor: minor,
-                value: outX || x
+                value: x
             });
+        }
+
+        if(ax.rangebreaks) {
+            for(var i = 0; i < tickVals.length; i++) {
+                if(ax.maskBreaks(tickVals[i].value) === BADNUM) {
+                    tickVals[i].value = moveOutsideBreak(tickVals[i].value, ax);
+                }
+            }
         }
     }
 
@@ -3360,12 +3346,12 @@ function isAngular(ax) {
     return ax._id === 'angularaxis';
 }
 
-function moveOutsideBreak(v, ax, isStart) {
+function moveOutsideBreak(v, ax) {
     var len = ax._rangebreaks.length;
     for(var k = 0; k < len; k++) {
         var brk = ax._rangebreaks[k];
         if(v >= brk.min && v < brk.max) {
-            return isStart ? brk.min : brk.max;
+            return brk.max;
         }
     }
     return v;
