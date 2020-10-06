@@ -687,7 +687,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
     var tickVals;
     function generateTicks() {
         var prevX = null;
-        var prevP = null;
+        var prevP = NaN;
         var maxTicks = Math.max(1000, ax._length || 0);
         tickVals = [];
         for(var x = ax._tmin;
@@ -700,7 +700,12 @@ axes.calcTicks = function calcTicks(ax, opts) {
                     if(!axrev && x === maxRange) continue;
                 }
                 var p = ax.c2p(x);
-                if(p === prevP) continue;
+                if(Math.abs(p - prevP) < 1) { // less than a pixel
+                    if(!axrev) {
+                        tickVals[tickVals.length - 1].value = x;
+                    }
+                    continue;
+                }
                 prevP = p;
             }
             // prevent infinite loops - no more than one tick per pixel,
