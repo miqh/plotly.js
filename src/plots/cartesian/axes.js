@@ -689,6 +689,8 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 (axrev) ? (x >= endTick) : (x <= endTick);
                 x = axes.tickIncrement(x, ax.dtick, axrev, ax.calendar)
         ) {
+            if(ax.rangebreaks && moveOutsideBreak(x, ax) === maxRange) continue;
+
             // prevent infinite loops - no more than one tick per pixel,
             // and make sure each value is different from the previous
             if(tickVals.length > maxTicks || x === xPrevious) break;
@@ -703,14 +705,6 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 minor: minor,
                 value: x
             });
-        }
-
-        if(ax.rangebreaks) {
-            for(var i = 0; i < tickVals.length; i++) {
-                if(ax.maskBreaks(tickVals[i].value) === BADNUM) {
-                    tickVals[i].value = moveOutsideBreak(tickVals[i].value, ax);
-                }
-            }
         }
     }
 
@@ -789,6 +783,23 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 periodLength *= n / nAll;
             }
             tickVals[i].periodX = periodX;
+        }
+    }
+
+    if(ax.rangebreaks) {
+        var flip = ax._id.charAt(0) === 'y';
+        var prevL = NaN;
+        for(i = tickVals.length - 1; i > -1; i--) {
+            var x = tickVals[i].value;
+            var l = ax.c2p(x);
+            if(flip ?
+                (prevL > l - 1) :
+                (prevL < l + 1)
+            ) { // ensure one pixel minimum
+                tickVals.splice(i, 1);
+            } else {
+                prevL = l;
+            }
         }
     }
 
