@@ -694,14 +694,17 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 (axrev) ? (x >= endTick) : (x <= endTick);
                 x = axes.tickIncrement(x, ax.dtick, axrev, ax.calendar)
         ) {
+            var outX;
             if(ax.rangebreaks) {
                 if(ax.maskBreaks(x) === BADNUM) {
+                    if(axrev) outX = moveOutsideBreak(x, ax, false);
                     x = moveOutsideBreak(x, ax, axrev);
                     if(!axrev && x === maxRange) continue;
                 }
                 var p = ax.c2p(x);
                 if(Math.abs(p - prevP) < 1) { // less than a pixel
                     if(!axrev) {
+                        // replace previous value
                         tickVals[tickVals.length - 1].value = x;
                     }
                     continue;
@@ -720,7 +723,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
             tickVals.push({
                 minor: minor,
-                value: x
+                value: outX || x
             });
         }
     }
