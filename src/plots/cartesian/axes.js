@@ -613,7 +613,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
     var isPeriod = ax.ticklabelmode === 'period';
     var definedDelta;
     if(isPeriod && tickformat) {
-        var noDtick = !!ax._dtickInit;
+        var noDtick = !ax._dtickInit;
         if(
             !(/%[fLQsSMX]/.test(tickformat))
             // %f: microseconds as a decimal number [000000, 999999]
@@ -778,7 +778,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
             var endPeriod = v + periodLength;
             if(ax.rangebreaks && periodLength > 0) {
-                var nAll = 96; // highly divisible 7 * 12
+                var nAll = 84; // highly divisible 7 * 12
                 var n = 0;
                 for(var c = 0; c < nAll; c++) {
                     var r = (c + 0.5) / nAll;
