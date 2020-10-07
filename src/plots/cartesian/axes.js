@@ -521,6 +521,8 @@ function autoShiftMonthBins(binStart, data, dtick, dataMin, calendar) {
 axes.prepTicks = function(ax, opts) {
     var rng = Lib.simpleMap(ax.range, ax.r2l, undefined, undefined, opts);
 
+    ax._dtickInit = ax.dtick;
+
     // calculate max number of (auto) ticks to display based on plot size
     if(ax.tickmode === 'auto' || !ax.dtick) {
         var nt = ax.nticks;
@@ -962,8 +964,6 @@ axes.autoTicks = function(ax, roughDTick) {
     function getBase(v) {
         return Math.pow(v, Math.floor(Math.log(roughDTick) / Math.LN10));
     }
-
-    ax._dtickInit = ax.dtick;
 
     if(ax.type === 'date') {
         ax.tick0 = Lib.dateTick0(ax.calendar, 0);
