@@ -771,8 +771,9 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 // ensure new label positions remain between ticks
                 periodLength = actualDelta;
             }
+
             var endPeriod = v + periodLength;
-            if(periodLength && ax.rangebreaks) {
+            if(ax.rangebreaks && periodLength > 0) {
                 var nAll = 24 * 7;
                 var n = 0;
                 for(var c = 0; c < nAll; c++) {
@@ -780,7 +781,14 @@ axes.calcTicks = function calcTicks(ax, opts) {
                     if(ax.maskBreaks(v * (1 - r) + r * endPeriod) !== BADNUM) n++;
                 }
                 periodLength *= n / nAll;
+
+                if(!periodLength) {
+                    tickVals[i].drop = true;
+                }
             }
+
+            //console.log(Lib.ms2DateTime(tickVals[i].value))
+            //console.log(periodLength / ONEDAY)
 
             tickVals[i].periodX = v + periodLength / 2;
         }
@@ -790,13 +798,13 @@ axes.calcTicks = function calcTicks(ax, opts) {
         var flip = ax._id.charAt(0) === 'y';
         var prevL = NaN;
         for(i = tickVals.length - 1; i > -1; i--) {
-            var x0 = tickVals[i].value;
-            var x1 = moveOutsideBreak(x0, ax);
-
-            tickVals[i].value = x1;
-            if(isPeriod) {
-                tickVals[i].periodX += x1 - x0;
+            if(tickVals[i].drop) {
+                tickVals.splice(i, 1);
+                continue;
             }
+
+            tickVals[i].value = moveOutsideBreak(tickVals[i].value, ax);
+
             var l = ax.c2p(tickVals[i].value);
             if(flip ?
                 (prevL > l - 1) :
