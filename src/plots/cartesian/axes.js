@@ -769,9 +769,11 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 periodLength = ONEHOUR;
             }
 
-            if(periodLength > actualDelta) {
+            var inBetween;
+            if(periodLength >= actualDelta) {
                 // ensure new label positions remain between ticks
                 periodLength = actualDelta;
+                inBetween = true;
             }
 
             var endPeriod = v + periodLength;
@@ -787,10 +789,9 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 if(!periodLength) {
                     tickVals[i].drop = true;
                 }
-            }
 
-            //console.log(Lib.ms2DateTime(tickVals[i].value))
-            //console.log(periodLength / ONEDAY)
+                if(inBetween && actualDelta !== ONEWEEK) periodLength = actualDelta;
+            }
 
             tickVals[i].periodX = v + periodLength / 2;
         }
