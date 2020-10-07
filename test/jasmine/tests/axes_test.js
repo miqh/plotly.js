@@ -5039,12 +5039,14 @@ describe('Test axes', function() {
 
             afterEach(destroyGraphDiv);
 
-            function _assert(msg, exp) {
+            function _assert(msg, exp, autorange) {
                 var fullLayout = gd._fullLayout;
                 var xa = fullLayout.xaxis;
 
-                expect(xa._vals.map(function(d) { return d.x; }))
-                    .withContext(msg).toEqual(exp.tickVals);
+                var vals = xa._vals.map(function(d) { return Lib.ms2DateTime(d.x); });
+                if(autorange === 'reversed') vals.reverse();
+
+                expect(vals).withContext(msg).toEqual(exp.tickVals);
             }
 
             it('should not include requested ticks that fall within rangebreaks', function(done) {
@@ -5066,7 +5068,7 @@ describe('Test axes', function() {
                 })
                 .then(function() {
                     _assert('base', {
-                        tickVals: [0, 50, 100, 150, 200]
+                        tickVals: ['1970-01-01', '1970-01-01 00:00:00.05', '1970-01-01 00:00:00.1', '1970-01-01 00:00:00.15', '1970-01-01 00:00:00.2']
                     });
                 })
                 .then(function() {
@@ -5086,7 +5088,7 @@ describe('Test axes', function() {
                 })
                 .then(function() {
                     _assert('with two rangebreaks', {
-                        tickVals: [0, 5, 90, 95, 190, 195, 200]
+                        tickVals: ['1970-01-01', '1970-01-01 00:00:00.089', '1970-01-01 00:00:00.1', '1970-01-01 00:00:00.189', '1970-01-01 00:00:00.2']
                     });
                 })
                 .catch(failTest)
@@ -5146,9 +5148,9 @@ describe('Test axes', function() {
                                 '1970-01-09 08:00', '1970-01-09 12:00', '1970-01-09 16:00',
                                 '1970-01-12 08:00', '1970-01-12 12:00', '1970-01-12 16:00',
                                 '1970-01-13 08:00', '1970-01-13 12:00', '1970-01-13 16:00',
-                                '1970-01-14 08:00', '1970-01-14 12:00', '1970-01-14 16:00'
-                            ].map(Lib.dateTime2ms)
-                        });
+                                '1970-01-14 08:00', '1970-01-14 12:00'
+                            ]
+                        }, autorange);
                     })
                     .then(function() {
                         fig.layout.xaxis = {
@@ -5178,8 +5180,8 @@ describe('Test axes', function() {
                                 '1970-01-12 08:00', '1970-01-12 11:00', '1970-01-12 14:00',
                                 '1970-01-13 08:00', '1970-01-13 11:00', '1970-01-13 14:00',
                                 '1970-01-14 08:00', '1970-01-14 11:00', '1970-01-14 14:00'
-                            ].map(Lib.dateTime2ms)
-                        });
+                            ]
+                        }, autorange);
                     })
                     .then(function() {
                         fig.layout.xaxis = {
@@ -5208,9 +5210,9 @@ describe('Test axes', function() {
                                 '1970-01-09 08:00', '1970-01-09 10:00', '1970-01-09 12:00', '1970-01-09 14:00', '1970-01-09 16:00',
                                 '1970-01-12 08:00', '1970-01-12 10:00', '1970-01-12 12:00', '1970-01-12 14:00', '1970-01-12 16:00',
                                 '1970-01-13 08:00', '1970-01-13 10:00', '1970-01-13 12:00', '1970-01-13 14:00', '1970-01-13 16:00',
-                                '1970-01-14 08:00', '1970-01-14 10:00', '1970-01-14 12:00', '1970-01-14 14:00', '1970-01-14 16:00'
-                            ].map(Lib.dateTime2ms)
-                        });
+                                '1970-01-14 08:00', '1970-01-14 10:00', '1970-01-14 12:00', '1970-01-14 14:00'
+                            ]
+                        }, autorange);
                     })
                     .catch(failTest)
                     .then(done);
