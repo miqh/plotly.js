@@ -790,7 +790,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
                     tickVals[i].drop = true;
                 }
 
-                if(inBetween && actualDelta !== ONEWEEK) periodLength = actualDelta;
+                if(inBetween && actualDelta > ONEWEEK) periodLength = actualDelta; // center monthly & longer periods
             }
 
             if(
