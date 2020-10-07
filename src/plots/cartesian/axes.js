@@ -793,7 +793,9 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 if(inBetween && actualDelta !== ONEWEEK) periodLength = actualDelta;
             }
 
-            tickVals[i].periodX = v + periodLength / 2;
+            if(periodLength > 0) {
+                tickVals[i].periodX = v + periodLength / 2;
+            }
         }
     }
 
@@ -2399,8 +2401,8 @@ axes.makeTransPeriodFn = function(ax) {
     var axLetter = ax._id.charAt(0);
     var offset = ax._offset;
     return axLetter === 'x' ?
-        function(d) { return 'translate(' + (offset + ax.l2p(d.periodX)) + ',0)'; } :
-        function(d) { return 'translate(0,' + (offset + ax.l2p(d.periodX)) + ')'; };
+        function(d) { return 'translate(' + (offset + ax.l2p(d.periodX !== undefined ? d.periodX : d.x)) + ',0)'; } :
+        function(d) { return 'translate(0,' + (offset + ax.l2p(d.periodX !== undefined ? d.periodX : d.x)) + ')'; };
 };
 
 /**
