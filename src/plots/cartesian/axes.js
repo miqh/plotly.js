@@ -594,7 +594,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
     // find the first tick
     var firstTick = axes.tickFirst(ax, opts);
-    if(ax.rangebreaks) firstTick = moveOutsideBreak(firstTick, ax);
+    if(ax.rangebreaks) firstTick = moveOutsideBreak(firstTick, ax, axrev);
     ax._tmin = firstTick;
 
     // No visible ticks? Quit.
@@ -804,6 +804,12 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
     if(ax.rangebreaks) {
         var flip = ax._id.charAt(0) === 'y';
+
+        var fontSize = 1; // one pixel minimum
+        if(ax.tickmode === 'auto') {
+            fontSize = ax.tickfont ? ax.tickfont.size : 12;
+        }
+
         var prevL = NaN;
         for(i = tickVals.length - 1; i > -1; i--) {
             if(tickVals[i].drop) {
@@ -813,10 +819,11 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
             tickVals[i].value = moveOutsideBreak(tickVals[i].value, ax);
 
+            // avoid overlaps
             var l = ax.c2p(tickVals[i].value);
             if(flip ?
-                (prevL > l - 1) :
-                (prevL < l + 1)
+                (prevL > l - fontSize) :
+                (prevL < l + fontSize)
             ) { // ensure one pixel minimum
                 tickVals.splice(i, 1);
             } else {
@@ -3379,12 +3386,12 @@ function isAngular(ax) {
     return ax._id === 'angularaxis';
 }
 
-function moveOutsideBreak(v, ax) {
+function moveOutsideBreak(v, ax, isStart) {
     var len = ax._rangebreaks.length;
     for(var k = 0; k < len; k++) {
         var brk = ax._rangebreaks[k];
         if(v >= brk.min && v < brk.max) {
-            return brk.max;
+            return isStart ? brk.min : brk.max;
         }
     }
     return v;
