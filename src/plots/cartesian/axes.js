@@ -593,7 +593,9 @@ axes.calcTicks = function calcTicks(ax, opts) {
     var maxRange = Math.max(rng[0], rng[1]);
 
     // find the first tick
-    ax._tmin = axes.tickFirst(ax, opts);
+    var firstTick = axes.tickFirst(ax, opts);
+    if(ax.rangebreaks) firstTick = moveOutsideBreak(firstTick, ax);
+    ax._tmin = firstTick;
 
     // No visible ticks? Quit.
     // I've only seen this on category axes with all categories off the edge.
