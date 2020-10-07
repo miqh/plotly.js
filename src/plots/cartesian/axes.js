@@ -778,7 +778,7 @@ axes.calcTicks = function calcTicks(ax, opts) {
 
             var endPeriod = v + periodLength;
             if(ax.rangebreaks && periodLength > 0) {
-                var nAll = 24 * 7;
+                var nAll = 96; // highly divisible 7 * 12
                 var n = 0;
                 for(var c = 0; c < nAll; c++) {
                     var r = (c + 0.5) / nAll;
@@ -793,7 +793,10 @@ axes.calcTicks = function calcTicks(ax, opts) {
                 if(inBetween && actualDelta !== ONEWEEK) periodLength = actualDelta;
             }
 
-            if(periodLength > 0) {
+            if(
+                periodLength > 0 || // not instant
+                i === 0 // taking care first tick added
+            ) {
                 tickVals[i].periodX = v + periodLength / 2;
             }
         }
