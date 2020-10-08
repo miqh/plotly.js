@@ -194,7 +194,7 @@
         },
         {
             "type": "sunburst",
-            "rotation": 180,
+            "rotation": -90,
             "level": "",
             "labels": [
                 "A1",
@@ -296,7 +296,7 @@
         },
         {
             "type": "sunburst",
-            "rotation": 90,
+            "rotation": 0,
             "level": "",
             "labels": [
                 "C1",

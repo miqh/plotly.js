@@ -18,7 +18,6 @@ var uniformText = require('../bar/uniform_text');
 var recordMinTextSize = uniformText.recordMinTextSize;
 var clearMinTextSize = uniformText.clearMinTextSize;
 var piePlot = require('../pie/plot');
-var getRotationAngle = require('../pie/helpers').getRotationAngle;
 var computeTransform = piePlot.computeTransform;
 var transformInsideText = piePlot.transformInsideText;
 var styleOne = require('./style').styleOne;
@@ -151,7 +150,7 @@ function plotOne(gd, cd, element, transitionOpts) {
     // filter out slices that won't show up on graph
     sliceData = sliceData.filter(function(pt) { return pt.y1 <= cutoff; });
 
-    var baseX = getRotationAngle(trace.rotation);
+    var baseX = (trace.rotation === 'auto' ? 90 : trace.rotation) * Math.PI / 180 - Math.PI / 2;
     if(baseX) {
         sliceData.forEach(function(pt) {
             pt.x0 += baseX;
